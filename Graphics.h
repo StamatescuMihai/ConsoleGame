@@ -112,14 +112,13 @@ public:
 	}
 
 	void Update() {
-		m_bufScreen[screenHeight * screenWidth - 1].Char.UnicodeChar = '\0';
 		WriteConsoleOutput(m_hConsole, m_bufScreen, { (short)screenWidth, (short)screenHeight }, { 0,0 }, &m_rectWindow);
 	}
 
 	void ResetScreen() {
 		for (int x = 0; x < screenWidth; x++) {
 			for (int y = 0; y < screenHeight; y++) {
-				DrawPixel(x, y, BLACK);
+				DrawPixel(x, y, GREEN);
 			}
 		}
 	}
