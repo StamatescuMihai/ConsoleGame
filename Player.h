@@ -2,10 +2,16 @@
 
 #include "Graphics.h"
 #include "Map.h"
+#include <cmath>
+
+#define PI 3.141592
 
 class Player {
 private:
-	double x=10, y=10, angle = 3.14159;
+	double x=10, y=10, angle = PI / 2;
+	double crosshairX, crosshairY;
+	double radius = 8;
+	const double angleSpeed = 0.5;
 	const int width = 6;
 	const int height = 6;
 	const double speed = 1.5;
@@ -25,6 +31,18 @@ public:
 		if (GetKeyState('D') & 0x8000) {
 			x += speed * deltaTime;
 		}
+
+		if (GetKeyState(VK_RIGHT) & 0x8000) {
+			angle += angleSpeed * deltaTime;
+		}
+		if (GetKeyState(VK_LEFT) & 0x8000) {
+			angle -= angleSpeed * deltaTime;
+		}
+
+		NormalizeAngle(angle);
+
+		crosshairX = x + (width/2) - 0.5 + (cos(angle) * radius);
+		crosshairY = y + (height/2) - 0.5 + (sin(angle) * radius);
 		
 		if (Collides(x, y, map)) {
 			if (!Collides(lastX, y, map)) {
@@ -53,6 +71,9 @@ public:
 		if (y + height -1 > gfx.getScreenHeight() - 1) {
 			y = gfx.getScreenHeight() - height;
 		}
+
+		gfx.DrawPixel(crosshairX, crosshairY, WHITE);
+
 		gfx.DrawPixel(x + 0, y + 0, DARK_RED);
 		gfx.DrawPixel(x + 1, y + 0, DARK_RED);
 		gfx.DrawPixel(x + 2, y + 0, DARK_GREEN);
@@ -101,5 +122,16 @@ public:
 			|| map.Get(x + width - 1, y) != ' ' 
 			|| map.Get(x, y + height - 1) != ' ' 
 			|| map.Get(x + width - 1, y + height - 1) != ' ';
+	}
+
+	void NormalizeAngle(double& angle) {
+		if (angle >= 2 * PI) {
+			angle -= 2 * PI;
+		}
+		else {
+			if (angle < 0) {
+				angle += 2 * PI;
+			}
+		}
 	}
 };

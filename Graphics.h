@@ -57,21 +57,21 @@ public:
 		wcscpy_s(cfi.FaceName, L"Consolas");
 
 		if (!SetCurrentConsoleFontEx(m_hConsole, false, &cfi))
-			return Error((wchar_t*)"SetCurrentConsoleFontEx");
+			return Error(L"SetCurrentConsoleFontEx");
 
 		COORD coordLargest = GetLargestConsoleWindowSize(m_hConsole);
 		if (screenHeight > coordLargest.Y)
-			return Error((wchar_t*)"Game Height Too Big");
+			return Error(L"Game Height Too Big");
 		if (screenWidth > coordLargest.X)
-			return Error((wchar_t*)"Game Width Too Big");
+			return Error(L"Game Width Too Big");
 
 		COORD buffer = { (short)screenWidth, (short)screenHeight };
 		if (!SetConsoleScreenBufferSize(m_hConsole, buffer))
-			Error((wchar_t*)"SetConsoleScreenBufferSize");
+			Error(L"SetConsoleScreenBufferSize");
 
 		m_rectWindow = { 0, 0, (short)screenWidth - 1, (short)screenHeight - 1 };
 		if (!SetConsoleWindowInfo(m_hConsole, TRUE, &m_rectWindow))
-			Error((wchar_t*)"SetConsoleWindowInfo");
+			Error(L"SetConsoleWindowInfo");
 
 		m_bufScreen = new CHAR_INFO[screenWidth * screenHeight];
 
@@ -124,7 +124,7 @@ public:
 	}
 
 protected:
-	int Error(wchar_t* msg)
+	int Error(const wchar_t* msg)
 	{
 		wchar_t buf[256];
 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
