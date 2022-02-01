@@ -3,19 +3,51 @@
 #include "Graphics.h"
 #include "Map.h"
 #include <cmath>
+#include <vector>
+#include <chrono>
+#include <list>
 
 #define PI 3.141592
 
 class Player {
+private:	
+	class Bullet {
+	private:
+		double x;
+		double y;
+		double angle;
+		const double speed = 0.75;
+	public:
+		Bullet(double x, double y, double angle) {
+			this->x = x;
+			this->y = y;
+			this->angle = angle;
+		}
+		void Update() {
+			x += cos(angle) * speed;
+			y += sin(angle) * speed;
+		}
+		void Draw(Graphics& gfx) {
+			gfx.DrawPixel(x, y, BLACK);
+		}
+		bool Collides(Map& map) {
+			return map.Get(x, y) == 'R';
+		}
+	};
 private:
-	double x=10, y=10, angle = PI / 2;
+	double x = 10, y = 10, angle = PI / 2;
 	double crosshairX, crosshairY;
 	double radius = 8;
 	const double angleSpeed = 0.5;
 	const int width = 6;
 	const int height = 6;
 	const double speed = 1.5;
+	list<Bullet> bullets;
+	chrono::time_point<chrono::system_clock> lastBullet;
+	chrono::duration<double> lastBulletDuration;
+	double bulletDuration;
 public:
+
 	void Update(double deltaTime, Map &map) {
 		double lastY = y;
 		double lastX = x;
@@ -43,6 +75,25 @@ public:
 
 		crosshairX = x + (width/2) - 0.5 + (cos(angle) * radius);
 		crosshairY = y + (height/2) - 0.5 + (sin(angle) * radius);
+
+		lastBulletDuration = chrono::system_clock::now() - lastBullet;
+		bulletDuration = lastBulletDuration.count();
+
+		if ((GetKeyState(VK_SPACE) & 0x8000) && bulletDuration > 0.75) {
+			lastBullet = chrono::system_clock::now();
+			Bullet b(x + width / 2, y + height / 2, angle);
+			bullets.emplace_back(b);
+		}
+
+		for (auto it = bullets.begin(); it != bullets.end();) {
+			it->Update();
+			if (it->Collides(map)) {
+				it = bullets.erase(it);
+			}
+			else {
+				it++;
+			}
+		}
 		
 		if (Collides(x, y, map)) {
 			if (!Collides(lastX, y, map)) {
@@ -70,6 +121,10 @@ public:
 		}
 		if (y + height -1 > gfx.getScreenHeight() - 1) {
 			y = gfx.getScreenHeight() - height;
+		}
+
+		for (auto it = bullets.begin(); it != bullets.end(); it++) {
+			it->Draw(gfx);
 		}
 
 		gfx.DrawPixel(crosshairX, crosshairY, WHITE);
@@ -134,4 +189,5 @@ public:
 			}
 		}
 	}
+
 };
