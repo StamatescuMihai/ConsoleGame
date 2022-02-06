@@ -33,6 +33,12 @@ private:
 		bool Collides(Map& map) {
 			return map.Get(x, y) == 'R';
 		}
+		double GetX() {
+			return x;
+		}
+		double Gety() {
+			return y;
+		}
 	};
 private:
 	double x = 10, y = 10, angle = PI / 2;
@@ -42,10 +48,11 @@ private:
 	const int width = 6;
 	const int height = 6;
 	const double speed = 1.5;
-	list<Bullet> bullets;
 	chrono::time_point<chrono::system_clock> lastBullet;
 	chrono::duration<double> lastBulletDuration;
 	double bulletDuration;
+public:
+	list<Bullet> bullets;
 public:
 
 	void Update(double deltaTime, Map &map) {
@@ -73,8 +80,8 @@ public:
 
 		NormalizeAngle(angle);
 
-		crosshairX = x + (width/2) - 0.5 + (cos(angle) * radius);
-		crosshairY = y + (height/2) - 0.5 + (sin(angle) * radius);
+		crosshairX = x + (width/2) + (cos(angle) * radius);
+		crosshairY = y + (height/2) + (sin(angle) * radius);
 
 		lastBulletDuration = chrono::system_clock::now() - lastBullet;
 		bulletDuration = lastBulletDuration.count();
@@ -109,6 +116,7 @@ public:
 		}
 
 	}
+
 	void Draw(Graphics &gfx) {
 		if (x < 0) {
 			x = 0;
@@ -148,7 +156,7 @@ public:
 		gfx.DrawPixel(x + 2, y + 2, WHITE);
 		gfx.DrawPixel(x + 3, y + 2, WHITE);
 		gfx.DrawPixel(x + 4, y + 2, BLACK);
-		gfx.DrawPixel(x + 5, y + 2, DARK_RED);
+		gfx.DrawPixel(x + 5, y + 2, DARK_GREEN);
 
 		//gfx.DrawPixel(x + 0, y + 3, GREEN);
 		gfx.DrawPixel(x + 1, y + 3, WHITE);
