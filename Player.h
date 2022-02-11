@@ -6,17 +6,19 @@
 #include <vector>
 #include <chrono>
 #include <list>
+#include <queue>
 
 #define PI 3.141592
+#define INF 2000000010
 
 class Player {
-private:	
+private:
 	class Bullet {
 	private:
 		double x;
 		double y;
 		double angle;
-		const double speed = 0.75;
+		const double speed = 2;
 	public:
 		Bullet(double x, double y, double angle) {
 			this->x = x;
@@ -41,10 +43,10 @@ private:
 		}
 	};
 private:
-	double x = 10, y = 10, angle = PI / 2;
+	double x, y, angle;
 	double crosshairX, crosshairY;
 	double radius = 8;
-	const double angleSpeed = 0.5;
+	const double angleSpeed = 0.3;
 	const int width = 6;
 	const int height = 6;
 	const double speed = 1.5;
@@ -54,8 +56,12 @@ private:
 public:
 	list<Bullet> bullets;
 public:
-
-	void Update(double deltaTime, Map &map) {
+	Player() {
+		x = 60;
+		y = 60;
+		angle = PI / 2;
+	}
+	void Update(double deltaTime, Map& map) {
 		double lastY = y;
 		double lastX = x;
 		if (GetKeyState('W') & 0x8000) {
@@ -80,8 +86,8 @@ public:
 
 		NormalizeAngle(angle);
 
-		crosshairX = x + (width/2) + (cos(angle) * radius);
-		crosshairY = y + (height/2) + (sin(angle) * radius);
+		crosshairX = x + (width / 2) + (cos(angle) * radius);
+		crosshairY = y + (height / 2) + (sin(angle) * radius);
 
 		lastBulletDuration = chrono::system_clock::now() - lastBullet;
 		bulletDuration = lastBulletDuration.count();
@@ -101,23 +107,23 @@ public:
 				it++;
 			}
 		}
-		
+
 		if (Collides(x, y, map)) {
 			if (!Collides(lastX, y, map)) {
 				x = lastX;
 			}
 			else if (!Collides(x, lastY, map)) {
-					y = lastY;
-				}
-				else {
-					x = lastX;
-					y = lastY;
-				}
+				y = lastY;
+			}
+			else {
+				x = lastX;
+				y = lastY;
+			}
 		}
 
 	}
 
-	void Draw(Graphics &gfx) {
+	void Draw(Graphics& gfx) {
 		if (x < 0) {
 			x = 0;
 		}
@@ -127,7 +133,7 @@ public:
 		if (x + width - 1 > gfx.getScreenWidth() - 1) {
 			x = gfx.getScreenWidth() - width;
 		}
-		if (y + height -1 > gfx.getScreenHeight() - 1) {
+		if (y + height - 1 > gfx.getScreenHeight() - 1) {
 			y = gfx.getScreenHeight() - height;
 		}
 
@@ -180,10 +186,40 @@ public:
 		gfx.DrawPixel(x + 5, y + 5, DARK_RED);
 	}
 
-	bool Collides(int x, int y, Map &map) {
+	void GeneratePathMap(Map& map, int pathMap[150][200]) {
+		bool viz[150][200];
+		for (int i = 0; i < 150; i++) {
+			for (int j = 0; j < 200; j++) {
+				pathMap[i][j] = INF;
+				viz[i][j] = false;
+			}
+		}
+		queue<pair<int, int> > q;
+		int dj[] = { 0, 0, -1, 1, -1, -1, 1, 1 };
+		int di[] = { 1, -1, 0, 0, 1, -1, -1, 1 };
+		q.push(make_pair((int)y, (int)x));
+		pathMap[(int)y][(int)x] = 0;
+		viz[(int)y][(int)x] = true;
+		while (!q.empty()) {
+			int iCrt = q.front().first;
+			int jCrt = q.front().second;
+			q.pop();
+			for (int d = 0; d < 8; d++) {
+				int iVec = iCrt + di[d];
+				int jVec = jCrt + dj[d];
+				if (iVec > 0 && jVec > 0 && iVec < 150 && jVec < 200 && !Collides(jVec, iVec, map) && !viz[iVec][jVec]) {
+					q.push(make_pair(iVec, jVec));
+					pathMap[iVec][jVec] = pathMap[iCrt][jCrt] + 1;
+					viz[iVec][jVec] = true;
+				}
+			}
+		}
+	}
+
+	bool Collides(int x, int y, Map& map) {
 		return map.Get(x, y) != ' '
-			|| map.Get(x + width - 1, y) != ' ' 
-			|| map.Get(x, y + height - 1) != ' ' 
+			|| map.Get(x + width - 1, y) != ' '
+			|| map.Get(x, y + height - 1) != ' '
 			|| map.Get(x + width - 1, y + height - 1) != ' ';
 	}
 
@@ -198,4 +234,30 @@ public:
 		}
 	}
 
+	double DistanceFrom(int _x, int _y) {
+		return sqrt((x - _x) * (x - _x) + (y - _y) * (y - _y));
+	}
+
+	void Reset() {
+		x = 60;
+		y = 60;
+		angle = PI / 2;
+		bullets.clear();
+	}
+
+	double getX() {
+		return x;
+	}
+
+	double getY() {
+		return y;
+	}
+
+	double getWidth() {
+		return width;
+	}
+
+	double getHeight() {
+		return height;
+	}
 };
